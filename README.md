@@ -177,46 +177,69 @@ Pulau Paradis telah menjadi tempat yang damai selama 1000 tahun, namun kedamaian
 *Silakan jalankan skrip berikut di Fritz untuk menambahkan domain eldia.it30.com.*
 
 ```bash
-echo 'zone "marley.it30.com" { 
-        type master; 
-        file "/etc/bind/marley/marley.it30.com";
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+apt-get update
+apt-get install bind9 -y
+
+echo 'options {
+        directory "/var/cache/bind";
+
+        forwarders {
+                192.168.122.1;
+        };
+
+        // dnssec-validation auto;
+        allow-query{any;};
+        auth-nxdomain no;
+        listen-on-v6 { any; };
+}; ' >/etc/bind/named.conf.options
+
+echo "zone \"marley.IT30.com\" {
+	type master;
+	file \"/etc/bind/jarkom/marley.IT30.com\";
 };
 
-zone "eldia.it30.com" {
-        type master;
-        file "/etc/bind/eldia/eldia.it30.com";
-}; ' >> /etc/bind/named.conf.local
+zone \"eldia.IT30.com\" {
+	type master;
+	file \"/etc/bind/jarkom/eldia.IT30.com\";
+};
+" > /etc/bind/named.conf.local
 
-mkdir /etc/bind/marley
-mkdir /etc/bind/eldia
+mkdir /etc/bind/jarkom
 
-echo ';
-; BIND data file for local loopback interface
+marley="
 ;
-$TTL    604800
-@       IN      SOA     marley.it30.com. root.marley.it30.com. (
-                              2         ; Serial
-                         604800         ; Refresh
-                          86400         ; Retry
-                        2419200         ; Expire
-                         604800 )       ; Negative Cache TTL
+;BIND data file for local loopback interface
 ;
-@       IN      NS      marley.it30.com.
-@       IN      A       192.248.1.2     ; IP Annie' > /etc/bind/marley/marley.it30.com
+\$TTL    604800
+@    IN    SOA    marley.IT30.com. root.marley.IT30.com. (
+        2        ; Serial
+                604800        ; Refresh
+                86400        ; Retry
+                2419200        ; Expire
+                604800 )    ; Negative Cache TTL
+;                   
+@    IN    NS    marley.IT32.com.
+@       IN    A    192.248.1.2
+"
+echo "$marley" > /etc/bind/jarkom/marley.IT30.com
 
-echo ';
-; BIND data file for local loopback interface
+eldia="
 ;
-$TTL    604800
-@       IN      SOA     eldia.it30.com. root.eldia.it30.com. (
-                              2         ; Serial
-                         604800         ; Refresh
-                          86400         ; Retry
-                        2419200         ; Expire
-                         604800 )       ; Negative Cache TTL
+;BIND data file for local loopback interface
 ;
-@       IN      NS      eldia.it30.com.
-@       IN      A       192.248.2.2     ; IP Armin' > /etc/bind/eldia/eldia.it30.com
+\$TTL    604800
+@    IN    SOA    eldia.IT30.com. root.eldia.IT30.com. (
+        2        ; Serial
+                604800        ; Refresh
+                86400        ; Retry
+                2419200        ; Expire
+                604800 )    ; Negative Cache TTL
+;                   
+@    IN    NS    eldia.IT32.com.
+@       IN    A    192.248.2.2
+"
+echo "$eldia" > /etc/bind/jarkom/eldia.IT30.com
 
 service bind9 restart
 ```
